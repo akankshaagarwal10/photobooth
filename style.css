@@ -1,0 +1,84 @@
+/* ---------------------------------------------------------------- */
+/* CORE SCROLLING AND USER EXPERIENCE */
+/* ---------------------------------------------------------------- */
+
+/* Smooth Scrolling: This makes the scroll animation smooth when using anchor links (like clicking the "CONTACT" link) */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Ensure the body is visible and fills the screen initially */
+body {
+    background-color: #1a0f32; /* Deep Purple/Black */
+    color: #00ffcc; /* Neon Cyan Text */
+    font-family: 'Consolas', monospace; /* Hacking/Digital Font */
+    margin: 0;
+    padding: 0;
+    /* Add a subtle digital grid pattern to the background if you have one */
+    /* background-image: url('grid-pattern.png'); */
+}
+
+/* ---------------------------------------------------------------- */
+/* Y2K STYLING */
+/* ---------------------------------------------------------------- */
+
+.cyber-header {
+    background-color: #ff00ff; /* Bright Magenta */
+    color: black;
+    padding: 15px 0;
+    text-align: center;
+    border-bottom: 5px solid #00ffcc;
+    /* Keeps the header visible while scrolling (optional) */
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-link {
+    color: black;
+    text-decoration: none;
+    padding: 0 15px;
+    font-weight: bold;
+}
+
+.hero-section {
+    padding: 100px 20px;
+    text-align: center;
+    border-bottom: 2px dashed #ff00ff;
+}
+
+.neon-title {
+    font-size: 3em;
+    text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 15px #00ffcc;
+}
+
+/* Scroll Filler Blocks to force a long page */
+.featured-edits-scroll {
+    padding: 50px 20px;
+}
+
+.scroll-filler-block {
+    margin: 30px auto;
+    padding: 20px;
+    border: 2px solid #00ffcc;
+    max-width: 800px;
+    background: rgba(1, 10, 20, 0.5); /* Semi-transparent dark background */
+    box-shadow: 0 0 8px #ff00ff;
+    animation: pulseBorder 5s infinite alternate; /* Optional: adds a pulsing Y2K effect */
+}
+
+.scrolling-placeholder {
+    height: 150px; /* Makes the block tall to fill space */
+    border: 1px dotted rgba(0, 255, 204, 0.5);
+    margin-top: 10px;
+}
+
+/* Optional Y2K animation for the block glow */
+@keyframes pulseBorder {
+    from {
+        box-shadow: 0 0 8px #ff00ff;
+    }
+    to {
+        box-shadow: 0 0 20px #00ffcc;
+    }
+}

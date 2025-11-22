@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Y2K PHOTO BOOTH V2.1 // CAPTURE</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* Y2K Global Styles */
+        :root {
+            --color-background: #C0C0C0; /* Windows 98 Gray */
+            --color-window: #FFFFFF;
+            --color-neon-cyan: #00FFFF;
+            --color-neon-green: #00FF00;
+            --color-border-dark: #808080;
+            --color-border-light: #F0F0F0;
+            --color-text: #000000;
+            --color-title-blue: #0000A0;
+            --font-main: 'VT323', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            color: var(--color-text);
+            text-transform: uppercase;
+        }
+
+        body {
+            background-color: #000080; /* Classic Windows Blue Screen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* 3D Beveled Window Effect */
+        .window {
+            width: 1100px; /* Wider to accommodate settings */
+            max-width: 95%;
+            min-height: 650px;
+            background-color: var(--color-background);
+            border-style: solid;
+            border-width: 2px;
+            border-color: var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
+            box-shadow: 6px 6px var(--color-border-dark);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Title Bar */
+        .title-bar {
+            background-color: var(--color-title-blue); 
+            color: white;
+            padding: 4px 6px;
+            font-size: 1.2em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border-dark);
+        }
+
+        .title-bar span {
+            color: white;
+            letter-spacing: 1px;
+        }
+        
+        /* Main Content Layout */
+        .content-area {
+            display: flex;
+            flex-grow: 1;
+            padding: 10px;
+            gap: 10px;
+        }
+
+        /* Left Panel - Camera & Strip */
+        .left-panel {
+            flex: 2.5;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Camera View Area */
+        .camera-view-panel {
+            flex: 1;
+            background-color: var(--color-window);
+            padding: 5px;
+            border-style: solid;
+            border-width: 2px;
+            border-color: var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 350px;
+        }
+
+        #cameraFeed {
+            width: 100%;
+            height: auto;
+            max-height: 100%;
+            background-color: #000;
+            object-fit: contain;
+            display: block;
+            transition: filter 0.1s; /* Smooth filter changes */
+        }
+        
+        /* Countdown Overlay */
+        #countdownOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--color-neon-cyan);
+            font-size: 10em;
+            display: none; 
+            justify-content: center;
+            align-items: center;
+            text-shadow: 0 0 15px var(--color-neon-cyan);
+            z-index: 10;
+        }
+
+        /* Photo Queue/Strip Area */
+        #stripContainer {
+            min-height: 120px;
+            background-color: var(--color-window);
+            padding: 5px;
+            border-style: solid;
+            border-width: 2px;
+            border-color: var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);
+            text-align: center;
+            position: relative;
+            overflow: hidden; 
+        }
+        
+        #previewGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            height: 100%;
+            padding: 5px 0;
+            align-items: center;
+        }
+        
+        .preview-slot {
+            height: 100%;
+            background-color: #000;
+            border: 2px solid var(--color-border-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em;
+            color: var(--color-neon-cyan);
+            transition: all 0.5s ease;
+        }
+        
+        .preview-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            transition: opacity 0.3s;
+        }
+
+        /* Final Strip Display */
+        #finalStripImage {
+            width: 100%;
+            max-width: 250px;
+            height: auto;
+            display: none;
+            margin: 0 auto;
+            border: 5px solid transparent; /* Set to transparent here, border applied in editor */
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            /* Initial position for "slot" animation */
+            position: absolute;
+            top: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            transition: top 1.5s ease-out;
+            z-index: 20;
+        }
+        
+        #finalStripImage.ready {
+            display: block;
+            top: 50%; /* Center vertically */
+            transform: translate(-50%, -50%);
+        }
+
+        /* Right Panel - Controls */
+        .control-panel {
+            flex: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        /* Y2K Button Style */
+        .y2k-button {
+            background-color: var(--color-background);
+            border-style: solid;
+            border-width: 2px;
+            border-color: var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
+            padding: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            text-align: center;
+            line-height: 1;
+            transition: all 0.05s ease;
+        }
+
+        .y2k-button:hover { filter: brightness(1.1); }
+
+        .y2k-button:active {
+            border-color: var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);
+            transform: translateY(1px);
+        }
+
+        .y2k-button.primary {
+            background-color: var(--color-neon-cyan);
+            color: var(--color-title-blue);
+            text-shadow: 0 0 5px #fff;
+            border-color: #00FFFF #00FFFF #00AAAA #00AAAA;
+        }
+        
+        /* Input Field Styling */
+        .settings-group {
+            border: 2px solid var(--color-border-dark);
+            border-right-color: var(--color-border-light);
+            border-bottom-color: var(--color-border-light);
+            padding: 5px;
+            background-color: var(--color-background);
+        }
+        
+        .settings-group label {
+            display: block;
+            font-size: 0.9em;
+            margin-bottom: 2px;
+        }
+
+        .settings-group select, .settings-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+            background-color: var(--color-window);
+            border: 1px solid var(--color-border-dark);
+            border-right-color: var(--color-border-light);
+            border-bottom-color: var(--color-border-light);
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .filter-option {
+            font-size: 0.8em;
+            padding: 4px;
+            border: 2px solid var(--color-border-dark);
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        
+        .filter-option.active {
+            background-color: var(--color-neon-green);
+            color: var(--color-text);
+            box-shadow: 0 0 5px var(--color-neon-green);
+            border-color: var(--color-neon-green);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background-color: #000000;
+            padding: 4px 10px;
+            display: flex;
+            justify-content: space-between;
+            border-top: 2px solid var(--color-border-dark);
+        }
+
+        .status-bar span {
+            color: var(--color-neon-green);
+            font-size: 0.9em;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 5px var(--color-neon-green);
+        }
+        
+        @media (max-width: 1100px) {
+            .window { width: 95%; min-height: auto; }
+            .content-area { flex-direction: column; }
+            .left-panel { flex: none; }
+            .camera-view-panel { min-height: 250px; }
+            .control-panel { flex: none; }
+            #previewGrid { grid-template-columns: repeat(4, 1fr); height: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window">
+        <div class="title-bar">
+            <span>📸 Y2K PHOTO BOOTH V2.1 // CAPTURE & FX MODULE</span>
+            <div class="title-bar-controls">
+                <button title="Minimize">_</button>
+                <button title="Maximize">□</button>
+                <button title="Close">X</button>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="left-panel">
+                 <div class="camera-view-panel">
+                    <video id="cameraFeed" autoplay playsinline></video>
+                    <div id="countdownOverlay"></div>
+                </div>
+
+                <!-- Photo Queue/Strip Area -->
+                <div id="stripContainer">
+                    <div id="previewGrid">
+                        <div class="preview-slot">FRAME 1</div>
+                        <div class="preview-slot">FRAME 2</div>
+                        <div class="preview-slot">FRAME 3</div>
+                        <div class="preview-slot">FRAME 4</div>
+                    </div>
+                    <img id="finalStripImage" alt="Final Photo Strip Preview">
+                    <canvas id="photoCanvas" style="display: none;"></canvas>
+                    <canvas id="stripCanvas" style="display: none;"></canvas>
+                </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="y2k-button" id="statusMessage">SYSTEM OFFLINE. INIT REQUIRED.</div>
+
+                <button class="y2k-button primary" id="startButton">
+                    [ 🛑 INIT CAMERA ]
+                </button>
+                
+                <!-- Camera Settings -->
+                <div class="settings-group">
+                    <label>// ADVANCED CAMERA SETTINGS</label>
+                    
+                    <div class="slider-label"><span>SHUTTER SPEED:</span> <span id="shutterValue">1/100s</span></div>
+                    <!-- Low value (10) = slow shutter (blurry). High value (1000) = fast shutter (sharp) -->
+                    <input type="range" id="shutterSpeed" min="10" max="1000" value="100" data-label="1/X s">
+                    
+                    <div class="slider-label"><span>ISO (GRAIN/CONTRAST):</span> <span id="isoValue">100</span></div>
+                    <input type="range" id="iso" min="50" max="1000" value="100" data-label="">
+
+                    <div class="slider-label"><span>APERTURE (FOCUS):</span> <span id="apertureValue">F/4.0</span></div>
+                    <input type="range" id="aperture" min="10" max="100" value="40" data-label="F/X.0" >
+                    
+                    <div class="slider-label"><span>SATURATION:</span> <span id="saturationValue">100%</span></div>
+                    <input type="range" id="saturation" min="0" max="300" value="100" data-label="%">
+
+                    <div class="slider-label"><span>BRIGHTNESS:</span> <span id="brightnessValue">100%</span></div>
+                    <input type="range" id="brightness" min="50" max="200" value="100" data-label="%">
+                </div>
+                
+                <!-- Filter Options -->
+                <div class="settings-group" style="margin-top: 5px;">
+                    <label>// Y2K COLOR FILTER MODULE:</label>
+                    <div id="filterGrid" class="filter-grid">
+                        <!-- Filter buttons will be inserted here by JS -->
+                    </div>
+                </div>
+
+                <button class="y2k-button" id="captureButton" disabled style="margin-top: auto;">
+                    [ 📸 START 4-FRAME SESSION ]
+                </button>
+                
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <span id="statusBarStatus">STATUS: OFFLINE</span>
+            <span id="statusBarMemory">CONFIG: CUSTOM</span>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('cameraFeed');
+        const startButton = document.getElementById('startButton');
+        const captureButton = document.getElementById('captureButton');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const statusMessage = document.getElementById('statusMessage');
+        const statusBarStatus = document.getElementById('statusBarStatus');
+        const finalStripImage = document.getElementById('finalStripImage');
+        const filterGrid = document.getElementById('filterGrid');
+        const previewSlots = document.querySelectorAll('.preview-slot');
+        const stripContainer = document.getElementById('stripContainer');
+        
+        const settingsSliders = document.querySelectorAll('.settings-group input[type="range"]');
+
+        let photoCount = 0;
+        const totalPhotos = 4;
+        const captureDelay = 1000; 
+        const capturedFrames = []; 
+        let currentFilterKey = 'NONE';
+        
+        // Default values for camera settings
+        let currentSettings = {
+            shutterSpeed: 100,
+            iso: 100,         
+            aperture: 40,     
+            saturation: 100,
+            brightness: 100
+        };
+
+        const filters = {
+            'NONE': 'none',
+            'CRT VIBE': 'sepia(0.3) contrast(1.1) saturate(0.8) hue-rotate(-10deg)',
+            'GLITCH': 'sepia(0.5) contrast(1.5) hue-rotate(10deg)',
+            'DIGITAL CAM': 'grayscale(0.3) contrast(1.2) sepia(0.2)',
+            'CYBER PUNK': 'brightness(1.5) saturate(2.5) hue-rotate(180deg)',
+            'GAME BOY': 'contrast(2) brightness(1.5) grayscale(1)',
+            'MONOCHROME': 'grayscale(1) contrast(1.2)',
+            'PINK GLOW': 'hue-rotate(300deg) saturate(1.5) brightness(1.1)',
+            'AQUA DREAM': 'hue-rotate(240deg) saturate(1.5) contrast(0.9)',
+        };
+
+        // --- CAMERA FILTER CALCULATOR (APPLYING DYNAMIC EFFECTS) ---
+        function updateCameraFilter() {
+            const s = currentSettings.saturation / 100;
+            const b = currentSettings.brightness / 100;
+            
+            // 1. Simulate Shutter Speed: Slower shutter (smaller number) means more motion blur
+            // Range 10 (Max Blur) to 1000 (Min Blur). Max blur = 4px
+            const blurAmount = (1000 - currentSettings.shutterSpeed) / 990 * 4; 
+            
+            // 2. Simulate ISO: Higher ISO means more digital noise/grain (via contrast)
+            // Range 50 to 1000. Noise effect up to 1.5x contrast
+            const noiseContrast = 1 + (currentSettings.iso / 1000 * 0.5); 
+
+            // 3. Aperture is used here to adjust overall light/exposure slightly
+            const exposureAdjust = 1 - (currentSettings.aperture / 100 * 0.2); // Range 0.8 to 1.0
+
+            // Combine dynamic filters
+            const dynamicFilter = `saturate(${s}) brightness(${b * exposureAdjust}) blur(${blurAmount.toFixed(1)}px) contrast(${noiseContrast.toFixed(2)})`;
+
+            // Apply base filter (Y2K color filters) + dynamic filter
+            const baseFilter = filters[currentFilterKey];
+            video.style.filter = `${baseFilter} ${dynamicFilter}`;
+            
+            // Update UI for all sliders
+            document.getElementById('shutterValue').textContent = `1/${currentSettings.shutterSpeed}s`;
+            document.getElementById('isoValue').textContent = currentSettings.iso;
+            document.getElementById('apertureValue').textContent = `F/${(currentSettings.aperture / 10).toFixed(1)}`;
+            document.getElementById('saturationValue').textContent = `${currentSettings.saturation}%`;
+            document.getElementById('brightnessValue').textContent = `${currentSettings.brightness}%`;
+        }
+
+        // --- UI INITIALIZATION ---
+        // 1. Populate filter options (remains the same)
+        Object.keys(filters).forEach(name => {
+            const button = document.createElement('div');
+            button.classList.add('y2k-button', 'filter-option');
+            button.textContent = name;
+            button.dataset.filter = name;
+            if (name === 'NONE') button.classList.add('active');
+            
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.filter-option').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentFilterKey = name;
+                updateCameraFilter(); 
+                statusMessage.textContent = `FILTER SET TO: ${currentFilterKey}`;
+            });
+            filterGrid.appendChild(button);
+        });
+        
+        // 2. Setup Camera Sliders
+        settingsSliders.forEach(slider => {
+            const settingName = slider.id;
+            slider.addEventListener('input', (e) => {
+                let value = parseInt(e.target.value);
+                currentSettings[settingName] = value;
+                updateCameraFilter();
+            });
+        });
+        updateCameraFilter(); // Initial filter application
+
+        // --- 1. INITIALIZE CAMERA / 2. START SESSION (remains the same) ---
+        startButton.addEventListener('click', () => {
+            if (video.srcObject) {
+                // Stop camera logic
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                startButton.textContent = '[ 🛑 INIT CAMERA ]';
+                statusMessage.textContent = 'SYSTEM OFFLINE. INIT REQUIRED.';
+                statusBarStatus.textContent = 'STATUS: OFFLINE';
+                captureButton.disabled = true;
+                finalStripImage.classList.remove('ready');
+                finalStripImage.style.display = 'none';
+                capturedFrames.length = 0;
+                previewSlots.forEach(slot => {
+                    slot.innerHTML = `FRAME ${slot.innerText.split(' ')[1]}`;
+                    slot.style.border = `2px solid var(--color-border-dark)`;
+                });
+                return;
+            }
+
+            statusMessage.textContent = 'ACCESSING PERIPHERALS...';
+            
+            const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 } } };
+
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then((stream) => {
+                    video.srcObject = stream;
+                    video.play();
+                    
+                    video.onloadeddata = () => {
+                        startButton.textContent = '[ 🛑 TERMINATE CAMERA ]';
+                        statusMessage.textContent = 'SYSTEM ONLINE. READY FOR CAPTURE.';
+                        statusBarStatus.textContent = 'STATUS: ACTIVE';
+                        captureButton.disabled = false;
+                    };
+                })
+                .catch((err) => {
+                    statusMessage.textContent = 'ERROR: DEVICE NOT FOUND OR PERMISSION DENIED.';
+                    statusBarStatus.textContent = 'STATUS: ERROR';
+                    console.error("Error accessing camera: ", err);
+                });
+        });
+
+        captureButton.addEventListener('click', () => {
+            if (!video.srcObject || video.paused) {
+                statusMessage.textContent = 'ERROR: CAMERA NOT INITIALIZED OR PAUSED.';
+                return;
+            }
+            
+            captureButton.disabled = true;
+            startButton.disabled = true;
+            finalStripImage.classList.remove('ready');
+            finalStripImage.style.display = 'none';
+            stripContainer.classList.remove('active');
+            
+            photoCount = 0;
+            capturedFrames.length = 0; 
+            previewSlots.forEach(slot => {
+                slot.innerHTML = `FRAME ${slot.innerText.split(' ')[1]}`;
+                slot.style.border = `2px solid var(--color-border-dark)`;
+            });
+
+            statusMessage.textContent = 'SESSION STARTING...';
+
+            runCountdown(3, () => {
+                captureLoop();
+            });
+        });
+
+        function runCountdown(count, callback) {
+            countdownOverlay.style.display = 'flex';
+            
+            const timer = setInterval(() => {
+                if (count > 0) {
+                    countdownOverlay.textContent = count;
+                    count--;
+                } else {
+                    clearInterval(timer);
+                    countdownOverlay.style.display = 'none';
+                    callback();
+                }
+            }, 1000);
+        }
+
+        // --- 3. CAPTURE LOOP (remains the same) ---
+        function captureLoop() {
+            if (photoCount < totalPhotos) {
+                photoCount++;
+                statusMessage.textContent = `FRAME ${photoCount} OF ${totalPhotos} // CAPTURING IN ${captureDelay/1000} SECOND...`;
+
+                document.body.style.backgroundColor = 'white'; 
+                setTimeout(() => {
+                    document.body.style.backgroundColor = '#000080';
+
+                    captureFrame(photoCount);
+
+                    setTimeout(captureLoop, 1500); 
+                }, captureDelay);
+
+            } else {
+                statusMessage.textContent = 'PROCESSING STRIP... PLEASE WAIT. // [00% COMPLETE]';
+                
+                setTimeout(() => {
+                    createPhotoStrip().then((stripUrl) => {
+                        stripContainer.classList.add('active');
+                        finalStripImage.src = stripUrl;
+                        finalStripImage.style.display = 'block';
+
+                        setTimeout(() => {
+                            finalStripImage.classList.add('ready');
+                        }, 50); 
+                        
+                        setTimeout(() => {
+                            statusMessage.textContent = 'PROCESSING COMPLETE. REDIRECTING...';
+                            localStorage.setItem('y2k_photo_strip', stripUrl);
+                            window.location.href = 'store.html'; 
+                        }, 2500); 
+
+                        captureButton.disabled = false;
+                        startButton.disabled = false;
+                    });
+                }, 500);
+            }
+        }
+        
+        // --- 4. IMAGE PROCESSING (Frame Capture and Store) ---
+        function captureFrame(index) {
+            const canvas = document.getElementById('photoCanvas');
+            const context = canvas.getContext('2d');
+            
+            const vRatio = video.videoHeight / video.videoWidth;
+            canvas.width = 640; 
+            canvas.height = 640 * vRatio;
+
+            // Apply the current dynamic filter settings from the live video feed
+            context.filter = video.style.filter; 
+
+            // Draw the current video frame onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Reset filter for the text overlay
+            context.filter = 'none';
+
+            // Y2K Timestamp 
+            context.fillStyle = 'lime'; 
+            context.font = '24px VT323'; 
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+            context.fillText(`// FRAME 0${index} | ${timestamp}`, 10, canvas.height - 10);
+            
+            // Store the data URL
+            const imgUrl = canvas.toDataURL('image/jpeg', 0.9);
+            capturedFrames.push(imgUrl);
+            
+            statusMessage.textContent = `FRAME 0${index} CAPTURED.`;
+            
+            // Update the live preview slot
+            const slot = previewSlots[index - 1];
+            slot.innerHTML = '';
+            const img = new Image();
+            img.src = imgUrl;
+            img.onload = () => {
+                slot.appendChild(img);
+                img.style.display = 'block';
+                slot.style.border = `2px solid var(--color-neon-green)`;
+                statusMessage.textContent = `FRAME 0${index} SAVED.`;
+            }
+        }
+
+        // --- 5. CREATE PHOTO STRIP (Stitching Logic) ---
+        function createPhotoStrip() {
+            return new Promise(resolve => {
+                const stripCanvas = document.getElementById('stripCanvas');
+                const framePadding = 15; 
+                const frameWidth = 200; 
+                
+                const imagesToLoad = capturedFrames.map(url => {
+                    return new Promise((imgResolve) => {
+                        const img = new Image();
+                        img.onload = () => imgResolve(img);
+                        img.onerror = () => { console.error("Error loading frame image"); imgResolve(null); };
+                        img.src = url;
+                    });
+                }).filter(p => p !== null); 
+
+                Promise.all(imagesToLoad).then(images => {
+                    const validImages = images.filter(img => img && img.width > 0);
+                    if (validImages.length === 0) {
+                        statusMessage.textContent = 'ERROR: NO VALID FRAMES CAPTURED.';
+                        resolve('');
+                        return;
+                    }
+
+                    const frameHeight = frameWidth * (validImages[0].height / validImages[0].width);
+                    const totalHeight = (frameHeight * validImages.length) + (framePadding * (validImages.length + 1));
+                    const stripInnerWidth = frameWidth;
+                    
+                    stripCanvas.width = stripInnerWidth + (framePadding * 2);
+                    stripCanvas.height = totalHeight;
+                    const stripContext = stripCanvas.getContext('2d');
+
+                    // CRITICAL CHANGE: ClearRect leaves the background transparent. 
+                    // The custom background will be applied in store.html.
+                    stripContext.clearRect(0, 0, stripCanvas.width, stripCanvas.height); 
+                    
+                    let currentY = framePadding;
+
+                    // Draw each image onto the strip canvas
+                    validImages.forEach((img, index) => {
+                        stripContext.drawImage(
+                            img,
+                            framePadding, 
+                            currentY,
+                            frameWidth,
+                            frameHeight
+                        );
+                        currentY += frameHeight + framePadding;
+                        statusBarStatus.textContent = `STATUS: STRIP BUILD... [${Math.round(((index + 1) / validImages.length) * 100)}% COMPLETE]`;
+                    });
+
+                    const finalStripUrl = stripCanvas.toDataURL('image/png'); // PNG supports transparency
+                    resolve(finalStripUrl);
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>     
+
