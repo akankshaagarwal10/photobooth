@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y2K PHOTO BOOTH V2.1 // STORE</title>
+    <title>Y2K PHOTO BOOTH V2.2 // STORE</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         /* Y2K Global Styles */
@@ -142,9 +142,8 @@
 
         /* Strip Container (This is where the magic happens) */
         #stripPreview {
-            width: 250px; /* MADE SMALLER */
+            width: 250px;
             max-width: 100%;
-            /* Set a consistent aspect ratio container for the preview */
             aspect-ratio: 4 / 8; 
             min-height: 320px; 
             background-color: #000000; 
@@ -152,24 +151,36 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 0; /* Remove padding as the generated image will have padding */
+            padding: 0;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             transition: background-color 0.3s, background-image 0.3s;
+            position: relative; /* Needed for absolute positioning of stickers */
+            overflow: hidden; /* Ensure stickers don't overflow */
         }
 
         #stripImage {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Ensure the generated image fits inside the preview box */
+            object-fit: contain;
             display: none;
         }
-        
+
+        /* Sticker overlay style */
+        .sticker-overlay {
+            position: absolute;
+            max-width: 40%; /* Example size */
+            max-height: 40%;
+            pointer-events: none; /* Allow clicks to pass through to the strip image */
+            object-fit: contain;
+        }
+
         /* Controls Panel */
         .control-panel {
             flex: 1;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            overflow-y: auto; /* Enable scrolling for many options */
         }
         
         .settings-group {
@@ -192,6 +203,10 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 4px;
         }
+
+        .option-grid.stickers {
+            grid-template-columns: repeat(4, 1fr); /* More columns for stickers */
+        }
         
         .option-button {
             font-size: 0.8em;
@@ -200,6 +215,7 @@
             cursor: pointer;
             text-align: center;
             transition: all 0.1s;
+            background-color: var(--color-window); /* Default for options */
         }
         
         .option-button:hover {
@@ -211,6 +227,20 @@
             color: var(--color-title-blue);
             box-shadow: 0 0 5px var(--color-neon-cyan);
             border-color: var(--color-neon-cyan);
+        }
+
+        .option-button.sticker-button {
+            padding: 2px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-button.sticker-button img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         
         #colorPicker {
@@ -227,7 +257,8 @@
             .preview-panel { flex: none; order: 2; }
             .control-panel { flex: none; order: 1; }
             #stripPreview { width: 100%; max-width: 350px; }
-            .option-grid { grid-template-columns: repeat(5, 1fr); }
+            .option-grid { grid-template-columns: repeat(4, 1fr); }
+            .option-grid.stickers { grid-template-columns: repeat(6, 1fr); }
         }
     </style>
 </head>
@@ -235,7 +266,7 @@
 
     <div class="window">
         <div class="title-bar">
-            <span>💾 Y2K PHOTO BOOTH V2.1 // STRIP STORE & EXPORT</span>
+            <span>💾 Y2K PHOTO BOOTH V2.2 // STRIP STORE & EXPORT</span>
             <div class="title-bar-controls">
                 <button title="Go Back" onclick="window.location.href='index.html'">◀</button>
                 <button title="Close" onclick="console.log('Close Clicked')">X</button>
@@ -253,9 +284,40 @@
 
                     <label style="margin-top: 15px;">- BACKGROUND PATTERN:</label>
                     <div class="option-grid" id="patternGrid">
-                        <div class="option-button active" data-type="color">DEFAULT COLOR</div>
-                        <!-- TEMPLATE.JPG is the frame/border image. It now triggers the image2.png background. -->
-                        <div class="option-button" data-type="image" data-image="template">TEMPLATE.JPG</div>
+                        <div class="option-button active" data-type="color">SOLID COLOR</div>
+                        <div class="option-button" data-type="image" data-image="grid">GRID.GIF</div>
+                        <div class="option-button" data-type="image" data-image="dots">DOTS.PNG</div>
+                        <div class="option-button" data-type="image" data-image="swirl">SWIRL.JPG</div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label>// STICKERS!</label>
+                    <div class="option-grid stickers" id="stickerGrid">
+                        <div class="option-button sticker-button" data-sticker="none">CLEAR</div>
+                        <div class="option-button sticker-button" data-sticker="star">⭐</div>
+                        <div class="option-button sticker-button" data-sticker="heart">💖</div>
+                        <div class="option-button sticker-button" data-sticker="smiley">😊</div>
+                        <div class="option-button sticker-button" data-sticker="flame">🔥</div>
+                        <div class="option-button sticker-button" data-sticker="alien">👽</div>
+                        <div class="option-button sticker-button" data-sticker="cd">💿</div>
+                        <div class="option-button sticker-button" data-sticker="bomb">💣</div>
+                        <div class="option-button sticker-button" data-sticker="butterfly">🦋</div>
+                        <div class="option-button sticker-button" data-sticker="sparkles">✨</div>
+                        <div class="option-button sticker-button" data-sticker="peace">☮️</div>
+                        <div class="option-button sticker-button" data-sticker="skull">💀</div>
+                        </div>
+                </div>
+
+                <div class="settings-group">
+                    <label>// IMAGE EFFECTS</label>
+                    <div class="option-grid" id="effectGrid">
+                        <div class="option-button active" data-effect="none">NONE</div>
+                        <div class="option-button" data-effect="grayscale">GRAYSCALE</div>
+                        <div class="option-button" data-effect="sepia">SEPIA</div>
+                        <div class="option-button" data-effect="invert">INVERT</div>
+                        <div class="option-button" data-effect="pixelate">PIXELATE</div>
+                        <div class="option-button" data-effect="glitch">GLITCH</div>
                     </div>
                 </div>
 
@@ -277,7 +339,6 @@
                 <div id="stripPreview">
                     <img id="stripImage" alt="Generated Photo Strip">
                 </div>
-                <!-- This canvas is used for both composition and preview generation -->
                 <canvas id="compositeCanvas" style="display: none;"></canvas>
             </div>
         </div>
@@ -292,6 +353,8 @@
         const stripImage = document.getElementById('stripImage');
         const colorPicker = document.getElementById('colorPicker');
         const patternGrid = document.getElementById('patternGrid');
+        const stickerGrid = document.getElementById('stickerGrid');
+        const effectGrid = document.getElementById('effectGrid');
         const downloadButton = document.getElementById('downloadButton');
         const statusMessage = document.getElementById('statusMessage');
         const statusBarStatus = document.getElementById('statusBarStatus');
@@ -300,27 +363,30 @@
 
         // --- Configuration & State ---
         let currentBackground = { type: 'color', value: '#000000' };
-        // This will hold the URL of the composite template (download.jpg + frames)
-        let compositeTemplateUrl = null; 
-        
+        let activeSticker = null; // Stores the URL or identifier of the active sticker
+        let activeEffect = 'none'; // Stores the name of the active effect
+
         let stripDataURL = localStorage.getItem('y2k_photo_strip');
         let stripFilter = localStorage.getItem('y2k_strip_filter') || 'NONE';
-        // Get individual frame data, which is needed for embedding into the template
-        let frameData = JSON.parse(localStorage.getItem('y2k_photo_frames') || '[]');
+        let frameData = JSON.parse(localStorage.getItem('y2k_photo_frames') || '[]'); // Still keep frameData for future potential
 
         const IMAGE_URLS = {
-            'template': 'uploaded:download.jpg',    // The border/frame image
-            'template_bg': 'uploaded:image2.png',   // The actual background image requested by the user
+            'grid': 'https://i.imgur.com/your-grid-pattern.gif', // Placeholder, replace with actual URLs
+            'dots': 'https://i.imgur.com/your-dots-pattern.png',
+            'swirl': 'https://i.imgur.com/your-swirl-pattern.jpg',
+            // Sticker images (example - use actual image URLs)
+            'star': 'https://i.imgur.com/your-star-sticker.png',
+            'heart': 'https://i.imgur.com/your-heart-sticker.png',
+            'smiley': 'https://i.imgur.com/your-smiley-sticker.png',
+            'flame': 'https://i.imgur.com/your-flame-sticker.png',
+            'alien': 'https://i.imgur.com/your-alien-sticker.png',
+            'cd': 'https://i.imgur.com/your-cd-sticker.png',
+            'bomb': 'https://i.imgur.com/your-bomb-sticker.png',
+            'butterfly': 'https://i.imgur.com/your-butterfly-sticker.png',
+            'sparkles': 'https://i.imgur.com/your-sparkles-sticker.png',
+            'peace': 'https://i.imgur.com/your-peace-sticker.png',
+            'skull': 'https://i.imgur.com/your-skull-sticker.png',
         };
-
-        // Normalized coordinates (based on a 400x800 template image aspect ratio)
-        // These represent the black placeholder rectangles in the download.jpg
-        const FRAME_POSITIONS = [
-            { x: 40, y: 40, w: 320, h: 160 },   // Frame 1
-            { x: 40, y: 220, w: 320, h: 160 },  // Frame 2
-            { x: 40, y: 400, w: 320, h: 160 },  // Frame 3
-            { x: 40, y: 580, w: 320, h: 160 }   // Frame 4
-        ];
 
         // --- Core Functions ---
 
@@ -331,7 +397,6 @@
                 img.onload = () => resolve(img);
                 img.onerror = (e) => {
                     console.error('Image loading failed:', url, e);
-                    // Resolve with null for graceful fallback
                     resolve(null); 
                 };
                 img.crossOrigin = "anonymous";
@@ -340,135 +405,166 @@
         }
         
         /**
-         * Creates a composite image: the template (download.jpg) with individual photo frames drawn into the black squares.
-         * Returns a Promise that resolves with the composite image Data URL.
+         * Applies various image effects to a canvas context.
+         * @param {CanvasRenderingContext2D} context The 2D rendering context of the canvas.
+         * @param {HTMLCanvasElement} canvas The canvas element itself.
+         * @param {string} effectName The name of the effect to apply.
          */
-        async function generatePhotoEmbeddedTemplate(templateUrl) {
-            if (frameData.length === 0) {
-                statusMessage.textContent = 'ERROR: INDIVIDUAL PHOTO FRAMES ARE MISSING.'; 
-                return null;
-            }
+        function applyCanvasEffect(context, canvas, effectName) {
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
 
-            statusBarStatus.textContent = 'STATUS: GENERATING TEMPLATE...';
-            
-            try {
-                const templateImg = await loadImage(templateUrl);
-                if (!templateImg) throw new Error('Template image failed to load.');
-
-                // Set canvas dimensions to match the template image
-                compositeCanvas.width = templateImg.width;
-                compositeCanvas.height = templateImg.height;
-                ctx.clearRect(0, 0, compositeCanvas.width, compositeCanvas.height);
-
-                // 1. Draw the Template Background Image (download.jpg)
-                ctx.drawImage(templateImg, 0, 0, templateImg.width, templateImg.height);
-                
-                // 2. Draw the Individual Photo Frames into the black placeholders
-                for (let i = 0; i < frameData.length && i < FRAME_POSITIONS.length; i++) {
-                    const frameUrl = frameData[i];
-                    const pos = FRAME_POSITIONS[i];
-                    const frameImg = await loadImage(frameUrl);
-
-                    if (frameImg) {
-                        // Calculate actual drawing coordinates based on canvas size
-                        const scaleX = templateImg.width / 400; // Template is normalized to 400 wide
-                        const scaleY = templateImg.height / 800; // Template is normalized to 800 high
-                        
-                        const drawX = pos.x * scaleX;
-                        const drawY = pos.y * scaleY;
-                        const drawW = pos.w * scaleX;
-                        const drawH = pos.h * scaleY;
-
-                        // Draw the individual frame image, stretching it to fit the placeholder rectangle
-                        ctx.drawImage(frameImg, drawX, drawY, drawW, drawH);
+            switch (effectName) {
+                case 'grayscale':
+                    for (let i = 0; i < data.length; i += 4) {
+                        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                        data[i] = avg;     // Red
+                        data[i + 1] = avg; // Green
+                        data[i + 2] = avg; // Blue
                     }
-                }
-                
-                statusMessage.textContent = 'TEMPLATE GENERATED.';
-                return compositeCanvas.toDataURL('image/png'); 
-            } catch (error) {
-                console.error('Error creating photo-embedded template:', error);
-                const msg = `FATAL ERROR: TEMPLATE GENERATION FAILED. (${error.message.toUpperCase()})`;
-                statusMessage.textContent = msg;
-                return null;
-            } finally {
-                statusBarStatus.textContent = 'STATUS: READY';
+                    break;
+                case 'sepia':
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));     // Red
+                        data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168)); // Green
+                        data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131)); // Blue
+                    }
+                    break;
+                case 'invert':
+                    for (let i = 0; i < data.length; i += 4) {
+                        data[i] = 255 - data[i];     // Red
+                        data[i + 1] = 255 - data[i + 1]; // Green
+                        data[i + 2] = 255 - data[i + 2]; // Blue
+                    }
+                    break;
+                case 'pixelate':
+                    const pixelSize = 10; // Adjust for desired pixelation level
+                    for (let y = 0; y < canvas.height; y += pixelSize) {
+                        for (let x = 0; x < canvas.width; x += pixelSize) {
+                            const p = (x + y * canvas.width) * 4;
+                            const r = data[p];
+                            const g = data[p + 1];
+                            const b = data[p + 2];
+
+                            for (let py = 0; py < pixelSize; py++) {
+                                for (let px = 0; px < pixelSize; px++) {
+                                    const pp = ((x + px) + (y + py) * canvas.width) * 4;
+                                    if (pp < data.length) { // Ensure within bounds
+                                        data[pp] = r;
+                                        data[pp + 1] = g;
+                                        data[pp + 2] = b;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case 'glitch':
+                    // A simple glitch effect: shift random horizontal lines
+                    const glitchStrength = 15; // Max pixel shift
+                    const numGlitches = 20; // Number of lines to glitch
+                    for (let i = 0; i < numGlitches; i++) {
+                        const y = Math.floor(Math.random() * canvas.height);
+                        const height = Math.floor(Math.random() * 5) + 1; // Glitch line height
+                        const xOffset = Math.floor(Math.random() * glitchStrength * 2) - glitchStrength; // Random shift left/right
+
+                        if (y + height < canvas.height) {
+                            const slice = context.getImageData(0, y, canvas.width, height);
+                            context.putImageData(slice, xOffset, y);
+                        }
+                    }
+                    break;
+                case 'none':
+                default:
+                    // No effect, do nothing
+                    return;
             }
+            context.putImageData(imageData, 0, 0);
         }
 
         /**
          * Updates the visual style of the strip container based on the selected options.
          */
         async function updateStripPreview() {
-            // Reset preview
-            stripPreview.style.backgroundImage = 'none';
-            stripPreview.style.backgroundColor = 'transparent';
-            compositeTemplateUrl = null; // Reset stored URL
-            statusMessage.textContent = 'UPDATING PREVIEW...';
+            if (!stripDataURL) {
+                statusMessage.textContent = 'ERROR: NO STRIP DATA FOUND. PLEASE CAPTURE PHOTOS FIRST.';
+                return;
+            }
+
+            statusBarStatus.textContent = 'STATUS: UPDATING PREVIEW...';
             stripImage.style.display = 'none'; // Hide strip until new image is ready
 
-            if (currentBackground.type === 'color') {
-                // --- Color Mode ---
-                stripPreview.style.backgroundColor = currentBackground.value;
-                stripImage.src = stripDataURL; // Use original strip data for preview
-                stripImage.style.display = 'block'; 
-                statusMessage.textContent = `BACKGROUND SET TO: ${currentBackground.value}`;
+            try {
+                const baseStripImg = await loadImage(stripDataURL);
+                if (!baseStripImg) throw new Error('Could not load base photo strip image for preview.');
 
-            } else if (currentBackground.type === 'image' && currentBackground.value === 'template') {
-                
-                // --- Template/Image2.png Mode ---
-                
-                // 1. Generate the composite template (download.jpg with frames embedded)
-                const tempCompositeUrl = await generatePhotoEmbeddedTemplate(IMAGE_URLS['template']);
-                
-                if (tempCompositeUrl) {
-                    compositeTemplateUrl = tempCompositeUrl; // Store for download
+                // Set canvas dimensions to match the base photo strip
+                compositeCanvas.width = baseStripImg.width;
+                compositeCanvas.height = baseStripImg.height;
+                ctx.clearRect(0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                    // 2. Load the composite template and the image2.png background for preview composition
-                    const templateImg = await loadImage(compositeTemplateUrl);
-                    const image2Img = await loadImage(IMAGE_URLS['template_bg']);
-
-                    if (templateImg && image2Img) {
-                        // Determine preview size (use fixed width, calculate height based on template ratio)
-                        const previewWidth = 250;
-                        const templateRatio = templateImg.height / templateImg.width; 
-                        const previewHeight = previewWidth * templateRatio; 
-
-                        // Set canvas size for preview generation
-                        compositeCanvas.width = previewWidth;
-                        compositeCanvas.height = previewHeight;
-                        ctx.clearRect(0, 0, previewWidth, previewHeight);
-
-                        // A. Draw image2.png as the base background
-                        // We scale image2Img to cover the preview area.
-                        ctx.drawImage(image2Img, 0, 0, previewWidth, previewHeight);
-                        
-                        // B. Draw the composite template (download.jpg + frames) on top
-                        ctx.drawImage(templateImg, 0, 0, previewWidth, previewHeight);
-
-                        // Set the generated image as the source for the preview
-                        stripImage.src = compositeCanvas.toDataURL('image/png');
-                        stripImage.style.display = 'block';
-                        stripPreview.style.backgroundColor = 'transparent'; 
-                        statusMessage.textContent = 'PREVIEW UPDATED: TEMPLATE & IMAGE2.PNG ACTIVE.';
-
+                // --- 1. Draw Background Pattern/Color ---
+                if (currentBackground.type === 'color') {
+                    ctx.fillStyle = currentBackground.value;
+                    ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+                } else if (currentBackground.type === 'image' && IMAGE_URLS[currentBackground.value]) {
+                    const patternImg = await loadImage(IMAGE_URLS[currentBackground.value]);
+                    if (patternImg) {
+                        ctx.drawImage(patternImg, 0, 0, compositeCanvas.width, compositeCanvas.height);
                     } else {
-                        statusMessage.textContent = 'ERROR: COULD NOT LOAD TEMPLATE OR IMAGE2.PNG FOR PREVIEW.';
-                        stripImage.src = stripDataURL; 
-                        stripImage.style.display = 'block';
+                        console.warn(`Pattern image ${currentBackground.value} failed to load.`);
+                        ctx.fillStyle = colorPicker.value; // Fallback to solid color
+                        ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
                     }
-
-                } else {
-                    // Fallback if composite creation fails (message already set in generatePhotoEmbeddedTemplate)
-                    stripImage.src = stripDataURL; 
-                    stripImage.style.display = 'block';
                 }
+
+                // --- 2. Draw the base Photo Strip (frames + original decorations) ---
+                ctx.drawImage(baseStripImg, 0, 0, compositeCanvas.width, compositeCanvas.height);
+
+                // --- 3. Apply Stickers ---
+                if (activeSticker && activeSticker !== 'none' && IMAGE_URLS[activeSticker]) {
+                    const stickerImg = await loadImage(IMAGE_URLS[activeSticker]);
+                    if (stickerImg) {
+                        // Position sticker dynamically (e.g., top-right corner, scaled)
+                        const stickerWidth = compositeCanvas.width * 0.3; // 30% of strip width
+                        const stickerHeight = (stickerImg.height / stickerImg.width) * stickerWidth;
+                        const stickerX = compositeCanvas.width - stickerWidth - 20; // 20px padding from right
+                        const stickerY = 20; // 20px padding from top
+                        ctx.drawImage(stickerImg, stickerX, stickerY, stickerWidth, stickerHeight);
+                    } else {
+                        console.warn(`Sticker image ${activeSticker} failed to load.`);
+                    }
+                }
+
+                // --- 4. Apply Image Effects ---
+                if (activeEffect && activeEffect !== 'none') {
+                    applyCanvasEffect(ctx, compositeCanvas, activeEffect);
+                }
+                
+                // Set the generated image as the source for the preview
+                stripImage.src = compositeCanvas.toDataURL('image/png');
+                stripImage.style.display = 'block';
+                stripPreview.style.backgroundColor = 'transparent'; // Ensure background color is from canvas
+
+                statusMessage.textContent = 'PREVIEW UPDATED.';
+
+            } catch (error) {
+                console.error('Error updating strip preview:', error);
+                statusMessage.textContent = `FATAL ERROR: PREVIEW FAILED. (${error.message.toUpperCase()})`;
+                // Fallback to showing raw strip if composition fails
+                stripImage.src = stripDataURL; 
+                stripImage.style.display = 'block';
+            } finally {
+                statusBarStatus.textContent = 'STATUS: READY';
             }
         }
 
         /**
          * Handles the click event for the download button.
-         * Creates a final canvas combining the customized background (template or color) and the decorated strip.
+         * Creates a final canvas combining the customized background, base strip, stickers, and effects.
          */
         async function handleDownload() {
             if (!stripDataURL) {
@@ -477,60 +573,53 @@
             }
             
             downloadButton.disabled = true;
-            statusBarStatus.textContent = 'STATUS: RENDERING FINAL IMAGE...';
+            statusBarStatus.textContent = 'STATUS: RENDERING FINAL IMAGE FOR DOWNLOAD...';
             
             try {
-                // Load the original decorated photo strip (used for size reference)
-                const stripImg = await loadImage(stripDataURL);
-                if (!stripImg) throw new Error('Could not load photo strip image.');
+                const baseStripImg = await loadImage(stripDataURL);
+                if (!baseStripImg) throw new Error('Could not load photo strip image for download.');
 
-                // Determine the size of the final download canvas (based on the strip image size + padding)
-                const padding = 50; 
-                const canvasWidth = stripImg.width + (padding * 2);
-                const canvasHeight = stripImg.height + (padding * 2);
-                
-                compositeCanvas.width = canvasWidth;
-                compositeCanvas.height = canvasHeight;
-                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                
+                // Use the full size of the original strip for download for best quality
+                compositeCanvas.width = baseStripImg.width;
+                compositeCanvas.height = baseStripImg.height;
+                ctx.clearRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+
                 // --- 1. Draw Base Background ---
-                if (currentBackground.type === 'image' && compositeTemplateUrl) {
-                    // If template is active, load and draw image2.png as the background
-                    const image2Url = IMAGE_URLS['template_bg'];
-                    const image2Img = await loadImage(image2Url);
-                    
-                    if (image2Img) {
-                        // Draw image2.png, scaled to cover the entire final canvas
-                        ctx.drawImage(image2Img, 0, 0, canvasWidth, canvasHeight);
-                    } else {
-                        // Fallback to the selected color if image2.png fails to load
-                        ctx.fillStyle = currentBackground.value;
-                        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-                        console.warn('Background image2.png failed to load for download, falling back to solid color.');
-                    }
-                } else {
-                    // If only color is active, use the color picker's value (default behavior)
+                if (currentBackground.type === 'color') {
                     ctx.fillStyle = currentBackground.value;
-                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                    ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+                } else if (currentBackground.type === 'image' && IMAGE_URLS[currentBackground.value]) {
+                    const patternImg = await loadImage(IMAGE_URLS[currentBackground.value]);
+                    if (patternImg) {
+                        ctx.drawImage(patternImg, 0, 0, compositeCanvas.width, compositeCanvas.height);
+                    } else {
+                        ctx.fillStyle = colorPicker.value; // Fallback
+                        ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+                        console.warn('Background pattern failed to load for download, falling back to solid color.');
+                    }
                 }
 
-                // --- 2. Draw Foreground Strip/Template ---
-                const stripX = (canvasWidth - stripImg.width) / 2;
-                const stripY = (canvasHeight - stripImg.height) / 2;
+                // --- 2. Draw the base Photo Strip (frames + original decorations) ---
+                ctx.drawImage(baseStripImg, 0, 0, compositeCanvas.width, compositeCanvas.height);
 
-                if (currentBackground.type === 'image' && compositeTemplateUrl) {
-                    // If template is active, load the generated composite image (download.jpg + frames)
-                    const compositeFinalImg = await loadImage(compositeTemplateUrl);
-                    if (compositeFinalImg) {
-                         // Draw the composite template centered.
-                        ctx.drawImage(compositeFinalImg, stripX, stripY, stripImg.width, stripImg.height);
-                    } 
-                } else {
-                    // If only color is active, draw the original photo strip (which contains the frames + decorations)
-                    ctx.drawImage(stripImg, stripX, stripY, stripImg.width, stripImg.height);
+                // --- 3. Apply Stickers (same logic as preview, but on full res canvas) ---
+                if (activeSticker && activeSticker !== 'none' && IMAGE_URLS[activeSticker]) {
+                    const stickerImg = await loadImage(IMAGE_URLS[activeSticker]);
+                    if (stickerImg) {
+                        const stickerWidth = compositeCanvas.width * 0.3;
+                        const stickerHeight = (stickerImg.height / stickerImg.width) * stickerWidth;
+                        const stickerX = compositeCanvas.width - stickerWidth - (compositeCanvas.width * 0.05); // 5% padding
+                        const stickerY = compositeCanvas.height * 0.025; // 2.5% padding from top
+                        ctx.drawImage(stickerImg, stickerX, stickerY, stickerWidth, stickerHeight);
+                    }
+                }
+
+                // --- 4. Apply Image Effects ---
+                if (activeEffect && activeEffect !== 'none') {
+                    applyCanvasEffect(ctx, compositeCanvas, activeEffect);
                 }
                 
-                // 3. Trigger Download
+                // 5. Trigger Download
                 const link = document.createElement('a');
                 link.download = `Y2K_PHOTO_STRIP_${Date.now()}.png`;
                 link.href = compositeCanvas.toDataURL('image/png');
@@ -569,7 +658,7 @@
             // 1. Color Picker Handler
             colorPicker.addEventListener('input', (e) => {
                 currentBackground = { type: 'color', value: e.target.value };
-                document.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('#patternGrid .option-button').forEach(btn => btn.classList.remove('active'));
                 patternGrid.querySelector('[data-type="color"]').classList.add('active');
                 updateStripPreview();
             });
@@ -579,11 +668,11 @@
                 const button = e.target.closest('.option-button');
                 if (!button) return;
 
-                document.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('#patternGrid .option-button').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
 
                 const type = button.dataset.type;
-                const value = button.dataset.image || colorPicker.value;
+                const value = button.dataset.image || colorPicker.value; // Fallback to color if 'color' button clicked
 
                 currentBackground = { type, value };
                 updateStripPreview();
@@ -592,12 +681,9 @@
             // Set initial active state for default color button
             patternGrid.querySelector('[data-type="color"]').classList.add('active');
 
-            // 3. Download Handler
-            downloadButton.addEventListener('click', handleDownload);
-        }
+            // 3. Sticker Grid Handler
+            stickerGrid.addEventListener('click', (e) => {
+                const button = e.target.closest('.option-button.sticker-button');
+                if (!button) return;
 
-        window.onload = init;
-    </script>
-
-</body>
-</html>
+                document.querySelectorAll('#stickerGrid .option-button').forEach(btn => btn
