@@ -686,4 +686,208 @@
                 const button = e.target.closest('.option-button.sticker-button');
                 if (!button) return;
 
-                document.querySelectorAll('#stickerGrid .option-button').forEach(btn => btn
+                document.querySelectorAll('#stickerGrid .option-button').forEach(btn => btn                         const xOffset = Math.floor(Math.random() * glitchStrength * (Math.random() > 0.5 ? 1 : -1));
+                        const slice = context.getImageData(0, y, canvas.width, height);
+                        context.putImageData(slice, xOffset, y);
+                    }
+                    break;
+
+                default:
+                    // No effect
+                    break;
+            }
+
+            context.putImageData(imageData, 0, 0);
+        }
+
+        // -------------------------
+        // APPLY BACKGROUND
+        // -------------------------
+        function applyBackground() {
+            if (currentBackground.type === 'color') {
+                stripPreview.style.backgroundImage = 'none';
+                stripPreview.style.backgroundColor = currentBackground.value;
+            } else if (currentBackground.type === 'image') {
+                const url = IMAGE_URLS[currentBackground.value];
+                stripPreview.style.backgroundColor = '#000';
+                stripPreview.style.backgroundImage = `url('${url}')`;
+                stripPreview.style.backgroundSize = 'cover';
+                stripPreview.style.backgroundRepeat = 'repeat';
+            }
+        }
+
+        // -------------------------
+        // APPLY STICKER
+        // -------------------------
+        function applySticker() {
+            // Remove any old stickers
+            const old = document.querySelectorAll('.sticker-overlay');
+            old.forEach(el => el.remove());
+
+            if (!activeSticker || activeSticker === 'none') return;
+
+            const url = IMAGE_URLS[activeSticker];
+            if (!url) return;
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.classList.add('sticker-overlay');
+
+            // center
+            img.style.left = '50%';
+            img.style.top = '50%';
+            img.style.transform = 'translate(-50%, -50%)';
+
+            stripPreview.appendChild(img);
+        }
+
+        // -------------------------
+        // APPLY EFFECT
+        // -------------------------
+        function applyEffectToPreview() {
+            stripImage.style.filter = 'none';
+
+            switch (activeEffect) {
+                case 'grayscale':
+                    stripImage.style.filter = 'grayscale(1)';
+                    break;
+                case 'sepia':
+                    stripImage.style.filter = 'sepia(1)';
+                    break;
+                case 'invert':
+                    stripImage.style.filter = 'invert(1)';
+                    break;
+                case 'pixelate':
+                    stripImage.style.imageRendering = 'pixelated';
+                    break;
+                case 'glitch':
+                    // visual glitch only happens on export, preview stays normal
+                    stripImage.style.filter = 'none';
+                    break;
+            }
+        }
+
+        // -------------------------
+        // EXPORT FINAL STRIP
+        // -------------------------
+        async function exportStrip() {
+            statusBarStatus.textContent = 'STATUS: EXPORTING…';
+
+            const previewRect = stripPreview.getBoundingClientRect();
+            compositeCanvas.width = previewRect.width;
+            compositeCanvas.height = previewRect.height;
+
+            // Fill background
+            if (currentBackground.type === 'color') {
+                ctx.fillStyle = currentBackground.value;
+                ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+            } else {
+                const bg = await loadImage(IMAGE_URLS[currentBackground.value]);
+                if (bg) ctx.drawImage(bg, 0, 0, compositeCanvas.width, compositeCanvas.height);
+            }
+
+            // Draw main strip image
+            if (stripImage.src) {
+                const img = await loadImage(stripImage.src);
+                if (img) ctx.drawImage(img, 0, 0, compositeCanvas.width, compositeCanvas.height);
+            }
+
+            // Draw sticker
+            if (activeSticker && activeSticker !== 'none') {
+                const sticker = await loadImage(IMAGE_URLS[activeSticker]);
+                if (sticker) {
+                    const stickerSize = compositeCanvas.width * 0.35;
+                    ctx.drawImage(
+                        sticker,
+                        compositeCanvas.width / 2 - stickerSize / 2,
+                        compositeCanvas.height / 2 - stickerSize / 2,
+                        stickerSize,
+                        stickerSize
+                    );
+                }
+            }
+
+            // Apply final effect
+            if (activeEffect !== 'none') {
+                applyCanvasEffect(ctx, compositeCanvas, activeEffect);
+            }
+
+            // Download
+            const link = document.createElement('a');
+            link.download = 'Y2K-strip.png';
+            link.href = compositeCanvas.toDataURL('image/png');
+            link.click();
+
+            statusBarStatus.textContent = 'STATUS: READY';
+        }
+
+        // -------------------------
+        // ---- UI INTERACTIONS ----
+        // -------------------------
+
+        // load strip image
+        if (stripDataURL) {
+            stripImage.src = stripDataURL;
+            stripImage.style.display = 'block';
+            document.getElementById('stripFilter').textContent = stripFilter;
+            document.getElementById('stripDate').textContent = new Date().toLocaleString();
+        }
+
+        // Background color
+        colorPicker.addEventListener('input', e => {
+            currentBackground = { type: 'color', value: e.target.value };
+            patternGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+            patternGrid.querySelector('[data-type="color"]').classList.add('active');
+            applyBackground();
+        });
+
+        // Patterns
+        patternGrid.addEventListener('click', e => {
+            if (!e.target.classList.contains('option-button')) return;
+
+            patternGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            const type = e.target.dataset.type;
+            const img = e.target.dataset.image;
+
+            if (type === 'color') {
+                currentBackground = { type: 'color', value: colorPicker.value };
+            } else {
+                currentBackground = { type: 'image', value: img };
+            }
+
+            applyBackground();
+        });
+
+        // Stickers
+        stickerGrid.addEventListener('click', e => {
+            if (!e.target.classList.contains('option-button')) return;
+
+            stickerGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            activeSticker = e.target.dataset.sticker;
+            applySticker();
+        });
+
+        // Effects
+        effectGrid.addEventListener('click', e => {
+            if (!e.target.classList.contains('option-button')) return;
+
+            effectGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            activeEffect = e.target.dataset.effect;
+            applyEffectToPreview();
+        });
+
+        // Download
+        downloadButton.addEventListener('click', exportStrip);
+
+        // Initial background load
+        applyBackground();
+    </script>
+
+</body>
+</html>
