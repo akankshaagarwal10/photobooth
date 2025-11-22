@@ -1,559 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Y2K PHOTO BOOTH V2.2 // STORE</title>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-    <style>
-        /* Y2K Global Styles */
-        :root {
-            --color-background: #C0C0C0; /* Windows 98 Gray */
-            --color-window: #FFFFFF;
-            --color-neon-cyan: #00FFFF;
-            --color-neon-green: #00FF00;
-            --color-border-dark: #808080;
-            --color-border-light: #F0F0F0;
-            --color-text: #000000;
-            --color-title-blue: #0000A0;
-            --font-main: 'VT323', monospace;
-        }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Y2K PHOTO BOOTH V2.2 // STORE</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+/* ========== Y2K STYLING (kept from your original file) ========== */
+:root{
+  --color-background:#C0C0C0;
+  --color-window:#FFFFFF;
+  --color-neon-cyan:#00FFFF;
+  --color-neon-green:#00FF00;
+  --color-border-dark:#808080;
+  --color-border-light:#F0F0F0;
+  --color-text:#000000;
+  --color-title-blue:#0000A0;
+  --font-main:'VT323',monospace;
+}
+*{box-sizing:border-box;font-family:var(--font-main);color:var(--color-text);text-transform:uppercase}
+body{
+  background-color:#000080;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;margin:0;padding:20px;
+}
+.window{
+  width:800px;max-width:95%;min-height:550px;
+  background-color:var(--color-background);
+  border-style:solid;border-width:2px;
+  border-color:var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
+  box-shadow:6px 6px var(--color-border-dark);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.title-bar{
+  background-color:var(--color-title-blue);color:white;padding:4px 6px;font-size:1.2em;
+  display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--color-border-dark);
+}
+.title-bar span{color:white;letter-spacing:1px;}
+.title-bar-controls button{
+  background-color:var(--color-background);
+  border-style:solid;border-width:2px;
+  border-color:var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
+  padding:1px 4px;margin-left:2px;cursor:pointer;line-height:1;font-size:1em;height:22px;min-width:24px;color:var(--color-text);
+}
+.title-bar-controls button:active{border-color:var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);transform:translateY(1px) translateX(1px);}
 
-        * {
-            box-sizing: border-box;
-            font-family: var(--font-main);
-            color: var(--color-text);
-            text-transform: uppercase;
-        }
+/* main */
+.content-area{display:flex;flex-grow:1;padding:15px;gap:20px;}
+.y2k-button{background-color:var(--color-background);border-style:solid;border-width:2px;border-color:var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);padding:8px;cursor:pointer;font-size:1.1em;text-align:center;line-height:1;transition:all 0.05s ease;width:100%}
+.y2k-button:hover{filter:brightness(1.1)}
+.y2k-button:active{border-color:var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);transform:translateY(1px)}
+.y2k-button.primary{background-color:var(--color-neon-green);color:var(--color-title-blue);text-shadow:0 0 5px #fff;border-color:#00FF00 #00FF00 #00AA00 #00AA00}
 
-        body {
-            background-color: #000080; /* Classic Windows Blue Screen */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+/* preview + control panels */
+.preview-panel{flex:2;display:flex;flex-direction:column;align-items:center;gap:10px;background-color:var(--color-window);padding:10px;border:2px solid var(--color-border-dark);border-right-color:var(--color-border-light);border-bottom-color:var(--color-border-light)}
+#stripPreview{width:250px;max-width:100%;aspect-ratio:4/8;min-height:320px;background-color:#000;background-size:cover;display:flex;justify-content:center;align-items:center;padding:0;box-shadow:0 0 10px rgba(0,0,0,0.5);transition:background-color .3s,background-image .3s;position:relative;overflow:hidden}
+#stripImage{width:100%;height:100%;object-fit:contain;display:none}
+.sticker-overlay{position:absolute;max-width:40%;max-height:40%;pointer-events:none;object-fit:contain}
+.control-panel{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.settings-group{border:2px solid var(--color-border-dark);border-right-color:var(--color-border-light);border-bottom-color:var(--color-border-light);padding:5px;background-color:var(--color-background)}
+.settings-group label{display:block;font-size:1em;margin-bottom:5px;color:var(--color-title-blue)}
+.option-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.option-grid.stickers{grid-template-columns:repeat(4,1fr)}
+.option-button{font-size:.8em;padding:8px 4px;border:2px solid var(--color-border-dark);cursor:pointer;text-align:center;transition:all .1s;background-color:var(--color-window)}
+.option-button:hover{filter:brightness(1.2)}
+.option-button.active{background-color:var(--color-neon-cyan);color:var(--color-title-blue);box-shadow:0 0 5px var(--color-neon-cyan);border-color:var(--color-neon-cyan)}
+.option-button.sticker-button{padding:2px;min-height:40px;display:flex;align-items:center;justify-content:center}
+.option-button.sticker-button img{max-width:100%;max-height:100%;object-fit:contain}
+#colorPicker{width:100%;height:30px;padding:0;border:2px solid var(--color-border-dark);cursor:pointer}
 
-        /* 3D Beveled Window Effect */
-        .window {
-            width: 800px;
-            max-width: 95%;
-            min-height: 550px;
-            background-color: var(--color-background);
-            border-style: solid;
-            border-width: 2px;
-            border-color: var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
-            box-shadow: 6px 6px var(--color-border-dark);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+/* statusbar */
+.status-bar{background-color:#000000;padding:4px 10px;display:flex;justify-content:space-between;border-top:2px solid var(--color-border-dark)}
+.status-bar span{color:var(--color-neon-green);font-size:.9em;letter-spacing:.5px;text-shadow:0 0 5px var(--color-neon-green)}
 
-        /* Title Bar */
-        .title-bar {
-            background-color: var(--color-title-blue); 
-            color: white;
-            padding: 4px 6px;
-            font-size: 1.2em;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--color-border-dark);
-        }
-
-        .title-bar span {
-            color: white;
-            letter-spacing: 1px;
-        }
-        
-        /* Title Bar Controls */
-        .title-bar-controls button {
-            background-color: var(--color-background);
-            border-style: solid;
-            border-width: 2px;
-            border-color: var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
-            padding: 1px 4px;
-            margin-left: 2px;
-            cursor: pointer;
-            line-height: 1;
-            font-size: 1em;
-            height: 22px; 
-            min-width: 24px;
-            color: var(--color-text);
-        }
-
-        .title-bar-controls button:active {
-            border-color: var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);
-            transform: translateY(1px) translateX(1px);
-        }
-
-        /* Main Content Layout */
-        .content-area {
-            display: flex;
-            flex-grow: 1;
-            padding: 15px;
-            gap: 20px;
-        }
-        
-        /* Y2K Button Style */
-        .y2k-button {
-            background-color: var(--color-background);
-            border-style: solid;
-            border-width: 2px;
-            border-color: var(--color-border-light) var(--color-border-dark) var(--color-border-dark) var(--color-border-light);
-            padding: 8px;
-            cursor: pointer;
-            font-size: 1.1em;
-            text-align: center;
-            line-height: 1;
-            transition: all 0.05s ease;
-            width: 100%;
-        }
-
-        .y2k-button:hover { filter: brightness(1.1); }
-
-        .y2k-button:active {
-            border-color: var(--color-border-dark) var(--color-border-light) var(--color-border-light) var(--color-border-dark);
-            transform: translateY(1px);
-        }
-
-        .y2k-button.primary {
-            background-color: var(--color-neon-green);
-            color: var(--color-title-blue);
-            text-shadow: 0 0 5px #fff;
-            border-color: #00FF00 #00FF00 #00AA00 #00AA00;
-        }
-        
-        /* Preview Panel */
-        .preview-panel {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            background-color: var(--color-window);
-            padding: 10px;
-            border: 2px solid var(--color-border-dark);
-            border-right-color: var(--color-border-light);
-            border-bottom-color: var(--color-border-light);
-        }
-
-        /* Strip Container (This is where the magic happens) */
-        #stripPreview {
-            width: 250px;
-            max-width: 100%;
-            aspect-ratio: 4 / 8; 
-            min-height: 320px; 
-            background-color: #000000; 
-            background-size: cover; 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-            transition: background-color 0.3s, background-image 0.3s;
-            position: relative; /* Needed for absolute positioning of stickers */
-            overflow: hidden; /* Ensure stickers don't overflow */
-        }
-
-        #stripImage {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: none;
-        }
-
-        /* Sticker overlay style */
-        .sticker-overlay {
-            position: absolute;
-            max-width: 40%; /* Example size */
-            max-height: 40%;
-            pointer-events: none; /* Allow clicks to pass through to the strip image */
-            object-fit: contain;
-        }
-
-        /* Controls Panel */
-        .control-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto; /* Enable scrolling for many options */
-        }
-        
-        .settings-group {
-            border: 2px solid var(--color-border-dark);
-            border-right-color: var(--color-border-light);
-            border-bottom-color: var(--color-border-light);
-            padding: 5px;
-            background-color: var(--color-background);
-        }
-        
-        .settings-group label {
-            display: block;
-            font-size: 1em;
-            margin-bottom: 5px;
-            color: var(--color-title-blue);
-        }
-
-        .option-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 4px;
-        }
-
-        .option-grid.stickers {
-            grid-template-columns: repeat(4, 1fr); /* More columns for stickers */
-        }
-        
-        .option-button {
-            font-size: 0.8em;
-            padding: 8px 4px;
-            border: 2px solid var(--color-border-dark);
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.1s;
-            background-color: var(--color-window); /* Default for options */
-        }
-        
-        .option-button:hover {
-            filter: brightness(1.2);
-        }
-        
-        .option-button.active {
-            background-color: var(--color-neon-cyan);
-            color: var(--color-title-blue);
-            box-shadow: 0 0 5px var(--color-neon-cyan);
-            border-color: var(--color-neon-cyan);
-        }
-
-        .option-button.sticker-button {
-            padding: 2px;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .option-button.sticker-button img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        
-        #colorPicker {
-            width: 100%;
-            height: 30px;
-            padding: 0;
-            border: 2px solid var(--color-border-dark);
-            cursor: pointer;
-        }
-        
-        @media (max-width: 800px) {
-            .window { width: 95%; min-height: auto; }
-            .content-area { flex-direction: column; }
-            .preview-panel { flex: none; order: 2; }
-            .control-panel { flex: none; order: 1; }
-            #stripPreview { width: 100%; max-width: 350px; }
-            .option-grid { grid-template-columns: repeat(4, 1fr); }
-            .option-grid.stickers { grid-template-columns: repeat(6, 1fr); }
-        }
-    </style>
+@media(max-width:800px){
+  .window{width:95%;min-height:auto}
+  .content-area{flex-direction:column}
+  .preview-panel{flex:none;order:2}
+  .control-panel{flex:none;order:1}
+  #stripPreview{width:100%;max-width:350px}
+  .option-grid{grid-template-columns:repeat(4,1fr)}
+  .option-grid.stickers{grid-template-columns:repeat(6,1fr)}
+}
+</style>
 </head>
 <body>
-
-    <div class="window">
-        <div class="title-bar">
-            <span>💾 Y2K PHOTO BOOTH V2.2 // STRIP STORE & EXPORT</span>
-            <div class="title-bar-controls">
-                <button title="Go Back" onclick="window.location.href='index.html'">◀</button>
-                <button title="Close" onclick="console.log('Close Clicked')">X</button>
-            </div>
-        </div>
-
-        <div class="content-area">
-            <div class="control-panel">
-                <div class="settings-group">
-                    <label>// STRIP CUSTOMIZATION MODULE</label>
-                    <div id="statusMessage" style="color: var(--color-neon-green); font-size: 0.9em; margin-bottom: 8px;">STRIP LOADED.</div>
-
-                    <label style="margin-top: 10px;">- BACKGROUND COLOR:</label>
-                    <input type="color" id="colorPicker" value="#000000">
-
-                    <label style="margin-top: 15px;">- BACKGROUND PATTERN:</label>
-                    <div class="option-grid" id="patternGrid">
-                        <div class="option-button active" data-type="color">SOLID COLOR</div>
-                        <div class="option-button" data-type="image" data-image="grid">GRID.GIF</div>
-                        <div class="option-button" data-type="image" data-image="dots">DOTS.PNG</div>
-                        <div class="option-button" data-type="image" data-image="swirl">SWIRL.JPG</div>
-                    </div>
-                </div>
-
-                <div class="settings-group">
-                    <label>// STICKERS!</label>
-                    <div class="option-grid stickers" id="stickerGrid">
-                        <div class="option-button sticker-button" data-sticker="none">CLEAR</div>
-                        <div class="option-button sticker-button" data-sticker="star">⭐</div>
-                        <div class="option-button sticker-button" data-sticker="heart">💖</div>
-                        <div class="option-button sticker-button" data-sticker="smiley">😊</div>
-                        <div class="option-button sticker-button" data-sticker="flame">🔥</div>
-                        <div class="option-button sticker-button" data-sticker="alien">👽</div>
-                        <div class="option-button sticker-button" data-sticker="cd">💿</div>
-                        <div class="option-button sticker-button" data-sticker="bomb">💣</div>
-                        <div class="option-button sticker-button" data-sticker="butterfly">🦋</div>
-                        <div class="option-button sticker-button" data-sticker="sparkles">✨</div>
-                        <div class="option-button sticker-button" data-sticker="peace">☮️</div>
-                        <div class="option-button sticker-button" data-sticker="skull">💀</div>
-                        </div>
-                </div>
-
-                <div class="settings-group">
-                    <label>// IMAGE EFFECTS</label>
-                    <div class="option-grid" id="effectGrid">
-                        <div class="option-button active" data-effect="none">NONE</div>
-                        <div class="option-button" data-effect="grayscale">GRAYSCALE</div>
-                        <div class="option-button" data-effect="sepia">SEPIA</div>
-                        <div class="option-button" data-effect="invert">INVERT</div>
-                        <div class="option-button" data-effect="pixelate">PIXELATE</div>
-                        <div class="option-button" data-effect="glitch">GLITCH</div>
-                    </div>
-                </div>
-
-                <div class="settings-group">
-                    <label>// STRIP METADATA</label>
-                    <div style="font-size: 0.8em;">
-                        <p>FILTER: <span id="stripFilter">N/A</span></p>
-                        <p>DATE: <span id="stripDate">N/A</span></p>
-                    </div>
-                </div>
-                
-                <button class="y2k-button primary" id="downloadButton" style="margin-top: auto;">
-                    [ 💾 DOWNLOAD FINAL STRIP ]
-                </button>
-            </div>
-
-            <div class="preview-panel">
-                <p>FINAL STRIP PREVIEW</p>
-                <div id="stripPreview">
-                    <img id="stripImage" alt="Generated Photo Strip">
-                </div>
-                <canvas id="compositeCanvas" style="display: none;"></canvas>
-            </div>
-        </div>
-
-        <div class="status-bar">
-            <span id="statusBarStatus" style="color: var(--color-neon-green); font-size: 0.9em;">STATUS: READY</span>
-        </div>
+  <div class="window">
+    <div class="title-bar">
+      <span>💾 Y2K PHOTO BOOTH V2.2 // STRIP STORE & EXPORT</span>
+      <div class="title-bar-controls">
+        <button title="Go Back" onclick="window.location.href='index.html'">◀</button>
+        <button title="Close" onclick="console.log('Close Clicked')">X</button>
+      </div>
     </div>
 
-                            const xOffset = Math.floor(Math.random() * glitchStrength * (Math.random() > 0.5 ? 1 : -1));
-                        const slice = context.getImageData(0, y, canvas.width, height);
-                        context.putImageData(slice, xOffset, y);
-                    }
-                    break;
+    <div class="content-area">
+      <div class="control-panel">
+        <div class="settings-group">
+          <label>// STRIP CUSTOMIZATION MODULE</label>
+          <div id="statusMessage" style="color:var(--color-neon-green);font-size:.9em;margin-bottom:8px;">STRIP LOADED.</div>
 
-                default:
-                    // No effect
-                    break;
+          <label style="margin-top:10px;">- BACKGROUND COLOR:</label>
+          <input type="color" id="colorPicker" value="#000000">
+
+          <label style="margin-top:15px;">- BACKGROUND PATTERN:</label>
+          <div class="option-grid" id="patternGrid">
+            <div class="option-button active" data-type="color">SOLID COLOR</div>
+            <div class="option-button" data-type="image" data-image="grid">GRID.GIF</div>
+            <div class="option-button" data-type="image" data-image="dots">DOTS.PNG</div>
+            <div class="option-button" data-type="image" data-image="swirl">SWIRL.JPG</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label>// STICKERS!</label>
+          <div class="option-grid stickers" id="stickerGrid">
+            <div class="option-button sticker-button" data-sticker="none">CLEAR</div>
+            <div class="option-button sticker-button" data-sticker="star">⭐</div>
+            <div class="option-button sticker-button" data-sticker="heart">💖</div>
+            <div class="option-button sticker-button" data-sticker="smiley">😊</div>
+            <div class="option-button sticker-button" data-sticker="flame">🔥</div>
+            <div class="option-button sticker-button" data-sticker="alien">👽</div>
+            <div class="option-button sticker-button" data-sticker="cd">💿</div>
+            <div class="option-button sticker-button" data-sticker="bomb">💣</div>
+            <div class="option-button sticker-button" data-sticker="butterfly">🦋</div>
+            <div class="option-button sticker-button" data-sticker="sparkles">✨</div>
+            <div class="option-button sticker-button" data-sticker="peace">☮️</div>
+            <div class="option-button sticker-button" data-sticker="skull">💀</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label>// IMAGE EFFECTS</label>
+          <div class="option-grid" id="effectGrid">
+            <div class="option-button active" data-effect="none">NONE</div>
+            <div class="option-button" data-effect="grayscale">GRAYSCALE</div>
+            <div class="option-button" data-effect="sepia">SEPIA</div>
+            <div class="option-button" data-effect="invert">INVERT</div>
+            <div class="option-button" data-effect="pixelate">PIXELATE</div>
+            <div class="option-button" data-effect="glitch">GLITCH</div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label>// STRIP METADATA</label>
+          <div style="font-size:.8em;">
+            <p>FILTER: <span id="stripFilter">N/A</span></p>
+            <p>DATE: <span id="stripDate">N/A</span></p>
+          </div>
+        </div>
+
+        <button class="y2k-button primary" id="downloadButton" style="margin-top:auto;">[ 💾 DOWNLOAD FINAL STRIP ]</button>
+      </div>
+
+      <div class="preview-panel">
+        <p>FINAL STRIP PREVIEW</p>
+        <div id="stripPreview">
+          <img id="stripImage" alt="Generated Photo Strip">
+        </div>
+        <canvas id="compositeCanvas" style="display:none;"></canvas>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <span id="statusBarStatus" style="color:var(--color-neon-green);font-size:.9em;">STATUS: READY</span>
+    </div>
+  </div>
+
+<script>
+/* ============================
+   Full working JS for store.html
+   - reads from localStorage (multiple keys)
+   - preview, patterns, stickers, effects
+   - compose & export final PNG
+   ============================ */
+
+const POSSIBLE_KEYS = ['y2k_photo_strip','photobooth_strip','photoStrip','stripImage'];
+const POSSIBLE_FILTER_KEYS = ['y2k_strip_filter','photobooth_filter','stripFilter'];
+const POSSIBLE_DATE_KEYS = ['y2k_strip_date','photobooth_date','stripDate'];
+
+// DOM refs
+const stripImage = document.getElementById('stripImage');
+const stripPreview = document.getElementById('stripPreview');
+const statusMessage = document.getElementById('statusMessage');
+const statusBarStatus = document.getElementById('statusBarStatus');
+const stripFilterEl = document.getElementById('stripFilter');
+const stripDateEl = document.getElementById('stripDate');
+const colorPicker = document.getElementById('colorPicker');
+const patternGrid = document.getElementById('patternGrid');
+const stickerGrid = document.getElementById('stickerGrid');
+const effectGrid = document.getElementById('effectGrid');
+const downloadButton = document.getElementById('downloadButton');
+const compositeCanvas = document.getElementById('compositeCanvas');
+const ctx = compositeCanvas.getContext('2d');
+
+// State
+let currentBackground = { type: 'color', value: '#000000' };
+let activeSticker = null; // key from IMAGE_URLS
+let activeEffect = 'none';
+
+// Image assets (placeholder URLs - replace with your own if desired)
+const IMAGE_URLS = {
+  grid: 'https://i.imgur.com/7Q1m1sH.png',   // example pattern
+  dots: 'https://i.imgur.com/1e6ZqKQ.png',
+  swirl: 'https://i.imgur.com/9k0mG6R.jpg',
+  star: 'https://i.imgur.com/9m2jQ8r.png',
+  heart: 'https://i.imgur.com/3f6bGvK.png',
+  smiley: 'https://i.imgur.com/0KXx1QZ.png',
+  flame: 'https://i.imgur.com/Lw3bKqQ.png',
+  alien: 'https://i.imgur.com/tV5b1Q2.png',
+  cd: 'https://i.imgur.com/5kz2QfM.png',
+  bomb: 'https://i.imgur.com/8Rj2b7P.png',
+  butterfly: 'https://i.imgur.com/Yg7m4uH.png',
+  sparkles: 'https://i.imgur.com/q3g4L6B.png',
+  peace: 'https://i.imgur.com/TVr9b2Q.png',
+  skull: 'https://i.imgur.com/r9z5a1K.png'
+};
+
+// ---------------- Helper: find value in localStorage from an array of candidate keys
+function findFromLocalStorage(keys) {
+  for (const k of keys) {
+    const v = localStorage.getItem(k);
+    if (v) return v;
+  }
+  return null;
+}
+
+// ---------------- Helper: load image
+function loadImage(url) {
+  return new Promise((resolve) => {
+    if (!url) return resolve(null);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => {
+      console.warn('Failed to load image:', url);
+      resolve(null);
+    };
+    img.src = url;
+  });
+}
+
+// ---------------- Canvas effects (pixel-by-pixel for some effects)
+function applyCanvasEffect(context, canvas, effectName) {
+  if (!effectName || effectName === 'none') return;
+  try {
+    const imageData = context.getImageData(0,0,canvas.width,canvas.height);
+    const data = imageData.data;
+
+    if (effectName === 'grayscale') {
+      for (let i=0;i<data.length;i+=4) {
+        const avg = (data[i]+data[i+1]+data[i+2])/3;
+        data[i]=data[i+1]=data[i+2]=avg;
+      }
+    } else if (effectName === 'sepia') {
+      for (let i=0;i<data.length;i+=4) {
+        const r=data[i], g=data[i+1], b=data[i+2];
+        data[i] = Math.min(255, (r*0.393)+(g*0.769)+(b*0.189));
+        data[i+1] = Math.min(255,(r*0.349)+(g*0.686)+(b*0.168));
+        data[i+2] = Math.min(255,(r*0.272)+(g*0.534)+(b*0.131));
+      }
+    } else if (effectName === 'invert') {
+      for (let i=0;i<data.length;i+=4) {
+        data[i]=255-data[i]; data[i+1]=255-data[i+1]; data[i+2]=255-data[i+2];
+      }
+    } else if (effectName === 'pixelate') {
+      // simple pixelation
+      const px = Math.max(4, Math.floor(Math.min(canvas.width, canvas.height) / 80));
+      for (let y=0;y<canvas.height;y+=px){
+        for (let x=0;x<canvas.width;x+=px){
+          const p = (x + y*canvas.width)*4;
+          const r = data[p], g=data[p+1], b=data[p+2];
+          for (let yy=0; yy<px; yy++){
+            for (let xx=0; xx<px; xx++){
+              const nx = x+xx, ny=y+yy;
+              if (nx<canvas.width && ny<canvas.height){
+                const np = (nx + ny*canvas.width)*4;
+                data[np] = r; data[np+1]=g; data[np+2]=b;
+              }
             }
-
-            context.putImageData(imageData, 0, 0);
+          }
         }
+      }
+    } else if (effectName === 'glitch') {
+      // simple glitch: shift some horizontal stripes
+      const lines = 20;
+      for (let i=0;i<lines;i++){
+        const y = Math.floor(Math.random()*canvas.height);
+        const h = Math.max(1, Math.floor(Math.random()*6));
+        const offset = Math.floor((Math.random()-0.5)*40);
+        const slice = context.getImageData(0,y,canvas.width,h);
+        context.putImageData(slice, offset, y);
+      }
+      // & return early because we used context.putImageData for slices
+      context.putImageData(imageData,0,0);
+      return;
+    }
 
-        // -------------------------
-        // APPLY BACKGROUND
-        // -------------------------
-        function applyBackground() {
-            if (currentBackground.type === 'color') {
-                stripPreview.style.backgroundImage = 'none';
-                stripPreview.style.backgroundColor = currentBackground.value;
-            } else if (currentBackground.type === 'image') {
-                const url = IMAGE_URLS[currentBackground.value];
-                stripPreview.style.backgroundColor = '#000';
-                stripPreview.style.backgroundImage = `url('${url}')`;
-                stripPreview.style.backgroundSize = 'cover';
-                stripPreview.style.backgroundRepeat = 'repeat';
-            }
-        }
+    context.putImageData(imageData,0,0);
+  } catch (err) {
+    console.error('applyCanvasEffect error', err);
+  }
+}
 
-        // -------------------------
-        // APPLY STICKER
-        // -------------------------
-        function applySticker() {
-            // Remove any old stickers
-            const old = document.querySelectorAll('.sticker-overlay');
-            old.forEach(el => el.remove());
+// ---------------- Update preview (apply background, stickers, css-filter for preview)
+async function updatePreview() {
+  // ensure base strip is present
+  if (!stripImage.src) return;
 
-            if (!activeSticker || activeSticker === 'none') return;
+  // Apply background visuals to preview container
+  if (currentBackground.type === 'color') {
+    stripPreview.style.backgroundImage = 'none';
+    stripPreview.style.backgroundColor = currentBackground.value;
+  } else {
+    stripPreview.style.backgroundImage = `url('${currentBackground.value}')`;
+    stripPreview.style.backgroundSize = 'cover';
+    stripPreview.style.backgroundRepeat = 'repeat';
+  }
 
-            const url = IMAGE_URLS[activeSticker];
-            if (!url) return;
+  // Remove existing sticker elements
+  document.querySelectorAll('.sticker-overlay').forEach(n => n.remove());
 
-            const img = document.createElement('img');
-            img.src = url;
-            img.classList.add('sticker-overlay');
+  // Add sticker if set
+  if (activeSticker && activeSticker !== 'none' && IMAGE_URLS[activeSticker]) {
+    const img = document.createElement('img');
+    img.className = 'sticker-overlay';
+    img.src = IMAGE_URLS[activeSticker];
+    // default position top-right-ish
+    img.style.top = '12px';
+    img.style.right = '12px';
+    img.style.left = 'auto';
+    img.style.transform = 'none';
+    stripPreview.appendChild(img);
+  }
 
-            // center
-            img.style.left = '50%';
-            img.style.top = '50%';
-            img.style.transform = 'translate(-50%, -50%)';
+  // apply preview CSS effects (use CSS filter for speed)
+  switch (activeEffect) {
+    case 'grayscale': stripImage.style.filter = 'grayscale(1)'; break;
+    case 'sepia': stripImage.style.filter = 'sepia(1)'; break;
+    case 'invert': stripImage.style.filter = 'invert(1)'; break;
+    case 'pixelate': stripImage.style.imageRendering = 'pixelated'; stripImage.style.filter = 'none'; break;
+    default: stripImage.style.filter = 'none'; stripImage.style.imageRendering = 'auto'; break;
+  }
+}
 
-            stripPreview.appendChild(img);
-        }
+// ---------------- Compose final canvas & download
+async function composeAndDownload() {
+  if (!stripImage.src) {
+    statusMessage.textContent = 'ERROR: NO STRIP TO EXPORT.';
+    return;
+  }
 
-        // -------------------------
-        // APPLY EFFECT
-        // -------------------------
-        function applyEffectToPreview() {
-            stripImage.style.filter = 'none';
+  statusBarStatus.textContent = 'STATUS: RENDERING...';
+  downloadButton.disabled = true;
 
-            switch (activeEffect) {
-                case 'grayscale':
-                    stripImage.style.filter = 'grayscale(1)';
-                    break;
-                case 'sepia':
-                    stripImage.style.filter = 'sepia(1)';
-                    break;
-                case 'invert':
-                    stripImage.style.filter = 'invert(1)';
-                    break;
-                case 'pixelate':
-                    stripImage.style.imageRendering = 'pixelated';
-                    break;
-                case 'glitch':
-                    // visual glitch only happens on export, preview stays normal
-                    stripImage.style.filter = 'none';
-                    break;
-            }
-        }
+  // Load main strip at natural resolution for best quality
+  const base = await loadImage(stripImage.src);
+  if (!base) {
+    statusMessage.textContent = 'ERROR: COULD NOT LOAD STRIP IMAGE.';
+    downloadButton.disabled = false;
+    statusBarStatus.textContent = 'STATUS: READY';
+    return;
+  }
 
-        // -------------------------
-        // EXPORT FINAL STRIP
-        // -------------------------
-        async function exportStrip() {
-            statusBarStatus.textContent = 'STATUS: EXPORTING…';
+  // Decide output size: use base image size
+  compositeCanvas.width = base.width;
+  compositeCanvas.height = base.height;
+  ctx.clearRect(0,0,compositeCanvas.width,compositeCanvas.height);
 
-            const previewRect = stripPreview.getBoundingClientRect();
-            compositeCanvas.width = previewRect.width;
-            compositeCanvas.height = previewRect.height;
+  // Draw background (if image -> scale to cover)
+  if (currentBackground.type === 'color') {
+    ctx.fillStyle = currentBackground.value;
+    ctx.fillRect(0,0,compositeCanvas.width,compositeCanvas.height);
+  } else {
+    // pattern image
+    const pat = await loadImage(currentBackground.value);
+    if (pat) {
+      // draw pattern to cover full canvas (repeat)
+      const patternCanvas = document.createElement('canvas');
+      patternCanvas.width = pat.width; patternCanvas.height = pat.height;
+      const pctx = patternCanvas.getContext('2d');
+      pctx.drawImage(pat,0,0);
+      ctx.fillStyle = ctx.createPattern(patternCanvas, 'repeat');
+      ctx.fillRect(0,0,compositeCanvas.width,compositeCanvas.height);
+    } else {
+      // fallback to color picker value
+      ctx.fillStyle = currentBackground.value || '#000000';
+      ctx.fillRect(0,0,compositeCanvas.width,compositeCanvas.height);
+    }
+  }
 
-            // Fill background
-            if (currentBackground.type === 'color') {
-                ctx.fillStyle = currentBackground.value;
-                ctx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
-            } else {
-                const bg = await loadImage(IMAGE_URLS[currentBackground.value]);
-                if (bg) ctx.drawImage(bg, 0, 0, compositeCanvas.width, compositeCanvas.height);
-            }
+  // Draw base strip at center (or top-left)
+  ctx.drawImage(base, 0, 0, compositeCanvas.width, compositeCanvas.height);
 
-            // Draw main strip image
-            if (stripImage.src) {
-                const img = await loadImage(stripImage.src);
-                if (img) ctx.drawImage(img, 0, 0, compositeCanvas.width, compositeCanvas.height);
-            }
+  // Draw sticker in relative position
+  if (activeSticker && activeSticker !== 'none' && IMAGE_URLS[activeSticker]) {
+    const s = await loadImage(IMAGE_URLS[activeSticker]);
+    if (s) {
+      // scale sticker to ~25% of width
+      const stickerW = compositeCanvas.width * 0.25;
+      const stickerH = (s.height / s.width) * stickerW;
+      const padding = compositeCanvas.width * 0.03;
+      const sx = compositeCanvas.width - stickerW - padding;
+      const sy = padding;
+      ctx.drawImage(s, sx, sy, stickerW, stickerH);
+    }
+  }
 
-            // Draw sticker
-            if (activeSticker && activeSticker !== 'none') {
-                const sticker = await loadImage(IMAGE_URLS[activeSticker]);
-                if (sticker) {
-                    const stickerSize = compositeCanvas.width * 0.35;
-                    ctx.drawImage(
-                        sticker,
-                        compositeCanvas.width / 2 - stickerSize / 2,
-                        compositeCanvas.height / 2 - stickerSize / 2,
-                        stickerSize,
-                        stickerSize
-                    );
-                }
-            }
+  // Apply pixel effects on canvas (if needed)
+  if (activeEffect && activeEffect !== 'none') {
+    applyCanvasEffect(ctx, compositeCanvas, activeEffect);
+  }
 
-            // Apply final effect
-            if (activeEffect !== 'none') {
-                applyCanvasEffect(ctx, compositeCanvas, activeEffect);
-            }
+  // Trigger download
+  const dataURL = compositeCanvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = dataURL;
+  a.download = `Y2K_PHOTO_STRIP_${Date.now()}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-            // Download
-            const link = document.createElement('a');
-            link.download = 'Y2K-strip.png';
-            link.href = compositeCanvas.toDataURL('image/png');
-            link.click();
+  statusBarStatus.textContent = 'STATUS: READY';
+  downloadButton.disabled = false;
+  statusMessage.textContent = 'DOWNLOAD COMPLETE.';
+}
 
-            statusBarStatus.textContent = 'STATUS: READY';
-        }
+// -------------------- UI Wiring -------------------- //
 
-        // -------------------------
-        // ---- UI INTERACTIONS ----
-        // -------------------------
+// Load strip from localStorage (try multiple keys for robustness)
+const saved = findFromLocalStorage(POSSIBLE_KEYS);
+const savedFilter = findFromLocalStorage(POSSIBLE_FILTER_KEYS);
+const savedDate = findFromLocalStorage(POSSIBLE_DATE_KEYS);
 
-        // load strip image
-        if (stripDataURL) {
-            stripImage.src = stripDataURL;
-            stripImage.style.display = 'block';
-            document.getElementById('stripFilter').textContent = stripFilter;
-            document.getElementById('stripDate').textContent = new Date().toLocaleString();
-        }
+if (saved) {
+  stripImage.src = saved;
+  stripImage.style.display = 'block';
+  statusMessage.textContent = 'STRIP LOADED.';
+} else {
+  statusMessage.textContent = 'ERROR: NO STRIP FOUND. GO BACK TO CAPTURE.';
+  statusMessage.style.color = 'crimson';
+  statusBarStatus.textContent = 'STATUS: NO STRIP';
+}
 
-        // Background color
-        colorPicker.addEventListener('input', e => {
-            currentBackground = { type: 'color', value: e.target.value };
-            patternGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
-            patternGrid.querySelector('[data-type="color"]').classList.add('active');
-            applyBackground();
-        });
+// metadata
+stripFilterEl.textContent = savedFilter || 'N/A';
+stripDateEl.textContent = savedDate || new Date().toLocaleString();
 
-        // Patterns
-        patternGrid.addEventListener('click', e => {
-            if (!e.target.classList.contains('option-button')) return;
+// color picker handler
+colorPicker.addEventListener('input', (e) => {
+  currentBackground = { type: 'color', value: e.target.value };
+  // reset pattern active states
+  patternGrid.querySelectorAll('.option-button').forEach(b => b.classList.remove('active'));
+  patternGrid.querySelector('[data-type="color"]').classList.add('active');
+  updatePreview();
+});
 
-            patternGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
+// pattern grid handler
+patternGrid.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.option-button');
+  if (!btn) return;
+  patternGrid.querySelectorAll('.option-button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 
-            const type = e.target.dataset.type;
-            const img = e.target.dataset.image;
+  const type = btn.dataset.type;
+  if (type === 'color') {
+    currentBackground = { type: 'color', value: colorPicker.value };
+  } else if (type === 'image') {
+    const key = btn.dataset.image;
+    if (key && IMAGE_URLS[key]) {
+      currentBackground = { type: 'image', value: IMAGE_URLS[key] };
+    } else {
+      currentBackground = { type: 'color', value: colorPicker.value };
+    }
+  }
+  updatePreview();
+});
 
-            if (type === 'color') {
-                currentBackground = { type: 'color', value: colorPicker.value };
-            } else {
-                currentBackground = { type: 'image', value: img };
-            }
+// sticker grid handler
+stickerGrid.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.option-button.sticker-button');
+  if (!btn) return;
+  stickerGrid.querySelectorAll('.option-button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 
-            applyBackground();
-        });
+  const sticker = btn.dataset.sticker;
+  if (!sticker || sticker === 'none') {
+    activeSticker = null;
+  } else {
+    activeSticker = sticker;
+  }
+  updatePreview();
+});
 
-        // Stickers
-        stickerGrid.addEventListener('click', e => {
-            if (!e.target.classList.contains('option-button')) return;
+// effects handler
+effectGrid.addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.option-button');
+  if (!btn) return;
+  effectGrid.querySelectorAll('.option-button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
 
-            stickerGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
+  activeEffect = btn.dataset.effect || 'none';
+  updatePreview();
+});
 
-            activeSticker = e.target.dataset.sticker;
-            applySticker();
-        });
+// download handler
+downloadButton.addEventListener('click', () => {
+  composeAndDownload();
+});
 
-        // Effects
-        effectGrid.addEventListener('click', e => {
-            if (!e.target.classList.contains('option-button')) return;
+// initial preview update (in case defaults exist)
+updatePreview();
 
-            effectGrid.querySelectorAll('.option-button').forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-
-            activeEffect = e.target.dataset.effect;
-            applyEffectToPreview();
-        });
-
-        // Download
-        downloadButton.addEventListener('click', exportStrip);
-
-        // Initial background load
-        applyBackground();
-    </script>
-
+</script>
 </body>
 </html>
-
-</body>
-</html>
-
